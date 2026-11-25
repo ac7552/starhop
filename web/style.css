@@ -1,0 +1,58 @@
+@font-face { font-family: "Inter Tight"; src: url("fonts/inter-tight-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; }
+:root {
+  --ink: #ece7db;
+  --dim: #9a978f;
+  --glass: rgba(8, 10, 16, 0.72);
+  --line: rgba(236, 231, 219, 0.12);
+  --burn: #f2b45a;
+  --cool: #9cc1ff;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #000; color: var(--ink); font: 14px/1.45 "Inter Tight", system-ui, sans-serif; overflow: hidden; }
+#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#labels { position: fixed; inset: 0; pointer-events: none; }
+.label { position: absolute; left: 0; top: 0; font-size: 12px; color: var(--dim); white-space: nowrap; padding-left: 10px; margin-top: -8px; }
+.label::before { content: ""; position: absolute; left: 0; top: 7px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.label.star { color: var(--burn); }
+
+#panel { position: fixed; top: 16px; left: 16px; bottom: 96px; width: 300px; padding: 18px; background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 14px; overflow-y: auto; }
+h1 { margin: 0 0 6px; font-size: 30px; font-weight: 650; letter-spacing: -0.02em; }
+header p { margin: 0 0 14px; color: var(--dim); font-size: 13px; }
+h2 { margin: 16px 0 6px; font-size: 13px; font-weight: 600; color: var(--dim); }
+h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
+.list { display: grid; gap: 2px; }
+.dest { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.dest small { color: var(--dim); font-size: 12px; }
+.dest:hover, .dest:focus-visible { background: rgba(236, 231, 219, 0.08); outline: none; }
+.dest.on { background: rgba(242, 180, 90, 0.16); }
+.dest.on small { color: var(--burn); }
+#preview { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+dl { margin: 0 0 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+dt { color: var(--dim); font-size: 12px; }
+dd { margin: 0; font-size: 15px; font-variant-numeric: tabular-nums; }
+.row { display: flex; gap: 10px; margin-bottom: 12px; }
+label { display: grid; gap: 4px; font-size: 12px; color: var(--dim); flex: 1; }
+select { font: inherit; color: var(--ink); background: rgba(236, 231, 219, 0.06); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+button { font: inherit; }
+.primary { width: 100%; padding: 10px; border: 0; border-radius: 10px; background: var(--burn); color: #1d1408; font-weight: 650; cursor: pointer; }
+.primary:disabled { opacity: 0.45; cursor: default; }
+.primary:focus-visible, .ghost:focus-visible, .warp button:focus-visible { outline: 2px solid var(--cool); outline-offset: 2px; }
+
+#hud { position: fixed; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 22px; padding: 12px 18px; background: var(--glass); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 14px; }
+#hud > div { display: grid; gap: 1px; min-width: 96px; }
+#hud span { color: var(--dim); font-size: 11px; }
+#hud b { font-weight: 550; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#hud .wide { flex: 1; }
+#hud #speed { color: var(--cool); }
+.warp { display: flex !important; align-items: center; gap: 4px; }
+.warp[hidden] { display: none !important; }
+.warp button { border: 1px solid var(--line); background: transparent; color: var(--dim); border-radius: 7px; padding: 3px 7px; cursor: pointer; font-size: 12px; }
+.warp button.on { color: var(--ink); border-color: var(--burn); }
+.ghost { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 9px; padding: 7px 12px; cursor: pointer; }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; color: var(--dim); background: #000; }
+#loading[hidden] { display: none; }
+@media (max-width: 760px) {
+  #panel { width: auto; right: 16px; bottom: auto; max-height: 45vh; }
+  #hud { flex-wrap: wrap; gap: 10px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

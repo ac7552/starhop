@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starhop</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.min.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="view"></canvas>
+  <div id="labels"></div>
+
+  <aside id="panel">
+    <header>
+      <h1>Starhop</h1>
+      <p>Fly from Earth to the real nearby stars. Every trip is a constant burn to the halfway point, a flip, and a braking burn, worked out with special relativity. The sky ahead bunches up and turns blue as you go faster.</p>
+    </header>
+
+    <section>
+      <h2 id="system">Solar system</h2>
+      <div id="here" class="list"></div>
+    </section>
+    <section>
+      <h2>Stars</h2>
+      <div id="far" class="list"></div>
+    </section>
+
+    <section id="preview" hidden>
+      <h3 id="pname"></h3>
+      <dl>
+        <div><dt>Distance</dt><dd id="pdist"></dd></div>
+        <div><dt>Time aboard</dt><dd id="pship"></dd></div>
+        <div><dt>Time back home</dt><dd id="phome"></dd></div>
+        <div><dt>Top speed</dt><dd id="ppeak"></dd></div>
+      </dl>
+      <div class="row">
+        <label>Thrust
+          <select id="accel">
+            <option value="0.1">0.1 g</option>
+            <option value="1" selected>1 g</option>
+            <option value="2">2 g</option>
+            <option value="5">5 g</option>
+          </select>
+        </label>
+        <label>Play the trip in
+          <select id="duration">
+            <option value="20">20 s</option>
+            <option value="45" selected>45 s</option>
+            <option value="120">2 min</option>
+          </select>
+        </label>
+      </div>
+      <button id="go" class="primary">Set off</button>
+    </section>
+  </aside>
+
+  <footer id="hud">
+    <div><span>Earth date</span><b id="date">-</b></div>
+    <div><span>Ship clock</span><b id="aboard">-</b></div>
+    <div><span>Speed</span><b id="speed">-</b></div>
+    <div><span>Time dilation</span><b id="gamma">-</b></div>
+    <div><span>To go</span><b id="togo">-</b></div>
+    <div class="wide"><span id="tripwarp"></span><b id="phase"></b></div>
+    <div id="warp" class="warp">
+      <span>Time</span>
+      <button data-w="1">×1</button><button data-w="60">×60</button><button data-w="3600">×3600</button><button data-w="86400">×1 day/s</button>
+    </div>
+    <button id="face" class="ghost">Look ahead</button>
+  </footer>
+
+  <div id="loading">Loading 17,753 stars</div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
