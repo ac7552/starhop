@@ -3,7 +3,8 @@
 //   rocket      the closed-form flip-and-burn trip against a step-by-step integration of the rocket equations
 //   sky         aberration and Doppler: the speed-of-light invariants that must hold exactly
 //   colour      blackbody chromaticity against CIE Illuminant A, which is defined as a 2856 K blackbody
-//   catalog     apparent magnitudes rebuilt from packed positions and absolute magnitudes, against the catalog
+//   catalog     apparent magnitudes rebuilt from packed positions and absolute magnitudes, against the catalog;
+//               distances worked out from spectral type, against the catalog's own good parallaxes
 //   planets     dated events the planet model must reproduce
 import fs from "node:fs";
 import { energy, keplerState, leapfrog, propagate } from "../src/kepler.js";
@@ -12,6 +13,7 @@ import { planetPosition, separation, eclipticLonLat } from "../src/solar.js";
 import { apparentMagnitude, blackbodyXYZ, chromaticity, readStars } from "../src/stars.js";
 import { AU, G0, GM_SUN, LY, julianDate, norm, sub } from "../src/units.js";
 import { seeded } from "../src/systems.js";
+import { absMagFromType, loadCatalogue } from "./pack_stars.mjs";
 
 const rows = [];
 const report = (group, name, value, unit, note = "") => rows.push({ group, name, value, unit, note });
@@ -87,6 +89,16 @@ const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[Math.
   const d = metaJ.check.map(({ i, mag }) => Math.abs(apparentMagnitude(st.absMag[i], Math.hypot(st.x[i], st.y[i], st.z[i])) - mag));
   report("catalog", "rebuilt apparent magnitude, median gap", median(d), "magnitudes", `${metaJ.check.length} stars`);
   report("catalog", "rebuilt apparent magnitude, worst gap", max(d), "magnitudes");
+  const from = metaJ.distances;
+  report("catalog", "stars placed by parallax", from.parallax, "stars", `${from.type} by spectral type, ${(from.colour || 0) + (from["weak parallax"] || 0)} another way`);
+  // Main-sequence stars with a parallax of 0.05" or more: the distance their type gives, over the measured one.
+  const ratios = [];
+  for (const s of loadCatalogue()) {
+    const plx = parseFloat(s.Parallax);
+    if (plx >= 0.05 && s.LuminosityCls === "V") ratios.push(10 ** ((parseFloat(s.Vmag) - absMagFromType(s.SpectralCls, "V") + 5) / 5) * plx);
+  }
+  report("catalog", "distance by spectral type / by parallax, median", median(ratios), "", `${ratios.length} main-sequence stars`);
+  report("catalog", "share of those within a factor of 1.5", (100 * ratios.filter((r) => r > 1 / 1.5 && r < 1.5).length) / ratios.length, "%");
 }
 
 // Planets: three dated events. Each is found by searching the model hour by hour.

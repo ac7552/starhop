@@ -7,6 +7,7 @@ import { BODIES, planetPosition, separation } from "../src/solar.js";
 import { apparentMagnitude, blackbodyRGB, blackbodyXYZ, bvToTemperature, chromaticity, readStars } from "../src/stars.js";
 import { madeUpSystem, solSystem } from "../src/systems.js";
 import { AU, G0, GM_SUN, LY, YEAR, julianDate, norm, sub } from "../src/units.js";
+import { absMagFromType, loadCatalogue, pack } from "../tools/pack_stars.mjs";
 
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b}`);
 
@@ -77,7 +78,29 @@ test("the packed catalog reproduces the catalog's own magnitudes", () => {
   const st = readStars(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), meta);
   for (const { i, mag } of meta.check) close(apparentMagnitude(st.absMag[i], Math.hypot(st.x[i], st.y[i], st.z[i])), mag, 0.01, `star ${i}`);
   const sirius = meta.named.find((n) => n.name === "Sirius");
-  close(Math.hypot(st.x[sirius.i], st.y[sirius.i], st.z[sirius.i]) * 3.26156, 8.6, 0.05, "Sirius is 8.6 light years away");
+  // The catalogue's 1991 parallax of 0.375" puts Sirius at 8.70 light years; today's value is 8.60.
+  close(Math.hypot(st.x[sirius.i], st.y[sirius.i], st.z[sirius.i]) * 3.26156, 8.7, 0.05, "Sirius is 8.7 light years away by this catalogue");
+});
+
+test("the packed files are what the packer makes from the catalogue", () => {
+  const { bin, meta } = pack(loadCatalogue());
+  const onDisk = fs.readFileSync(new URL("../data/stars.bin", import.meta.url));
+  assert.ok(Buffer.from(bin.buffer).equals(onDisk), "data/stars.bin is stale: run node tools/pack_stars.mjs");
+  assert.deepEqual(JSON.parse(fs.readFileSync(new URL("../data/stars.json", import.meta.url))), JSON.parse(JSON.stringify(meta)));
+});
+
+test("distances worked out from spectral type agree with good parallaxes for main-sequence stars", () => {
+  const ratios = [];
+  for (const s of loadCatalogue()) {
+    const plx = parseFloat(s.Parallax);
+    if (!(plx >= 0.05) || s.LuminosityCls !== "V") continue;
+    ratios.push(10 ** ((parseFloat(s.Vmag) - absMagFromType(s.SpectralCls, "V") + 5) / 5) * plx);
+  }
+  ratios.sort((a, b) => a - b);
+  assert.ok(ratios.length > 200, `${ratios.length} stars to check`);
+  close(ratios[Math.floor(ratios.length / 2)], 1, 0.15, "median of distance by type / distance by parallax");
+  const near = ratios.filter((r) => r > 1 / 1.5 && r < 1.5).length / ratios.length;
+  assert.ok(near > 0.8, `${(near * 100).toFixed(0)}% within a factor of 1.5`);
 });
 
 test("planets: Venus crossed the Sun in June 2012 and Jupiter met Saturn in December 2020", () => {
@@ -92,7 +115,7 @@ test("made-up planetary systems are the same every time and sit outside their st
   const meta = JSON.parse(fs.readFileSync(new URL("../data/stars.json", import.meta.url)));
   const buf = fs.readFileSync(new URL("../data/stars.bin", import.meta.url));
   const st = readStars(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), meta);
-  for (const i of [0, 3, 9, 6, 15711]) {
+  for (const i of [0, 3, 9, 6, 9000]) {
     const a = madeUpSystem(st, i, "x"), b = madeUpSystem(st, i, "x");
     assert.deepEqual(a.planets.map((p) => p.at(2460000)), b.planets.map((p) => p.at(2460000)));
     for (const p of a.planets) assert.ok(norm(p.at(2460000)) > 2 * a.star.radius, `star ${i}: ${p.name} inside its star`);

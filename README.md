@@ -1,6 +1,7 @@
 # Starhop
 
-Fly a ship from Earth to the stars, in the browser, by physics alone. The planets are where JPL's orbital
+Fly a ship from Earth to the stars, in the browser, by physics alone. The sky is the Yale Bright Star
+Catalogue's 9,096 stars, every one you can see without a telescope; the planets are where JPL's orbital
 elements put them today. Every trip is a constant burn to the halfway point, a flip, and a braking burn, timed
 with special relativity, and the sky you see on the way is what a ship at that speed would see: stars crowd
 forward, turn blue ahead and red behind. No AI, no textures downloaded, nothing learned.
@@ -27,10 +28,19 @@ npm test
 node tools/eval.mjs
 ```
 
+The packed star files in `data/` are built from the catalogue, and a test fails if they are out of date:
+
+```bash
+node tools/pack_stars.mjs
+```
+
 ## How it works
 
-1. **Stars** (`src/stars.js`). Each star has a position, absolute magnitude and B-V colour, in the J2000
-   ecliptic frame the planets use. The star field itself is not in this repository yet (see Not done yet).
+1. **Stars** (`tools/pack_stars.mjs`, `src/stars.js`). From the Yale Bright Star Catalogue: position, visual
+   magnitude and B-V colour, turned into the J2000 ecliptic frame the planets use. The catalogue has a usable
+   parallax for only 531 stars, so the other 8,565 get their distance from spectral type and luminosity class:
+   these give an absolute magnitude, and the distance follows from how bright the star looks. A giant whose
+   old parallax would put it more than three times nearer than its type allows is placed by type too.
    Temperature comes from B-V (Ballesteros 2012); colour from Planck's law integrated against the CIE 1931
    colour matching functions; brightness from the distance to the ship each frame, so stars brighten as you
    approach them.
@@ -65,6 +75,8 @@ node tools/eval.mjs
 | Closed-form trip vs step-by-step integration of the rocket | agree to 3e-11 |
 | Aberration: seen directions stay unit length; beta then -beta gives back the start | 3e-14; 6e-13 rad |
 | 2856 K blackbody vs CIE Illuminant A (defined as that blackbody) | 0.0016 apart in xy |
+| Catalogue magnitudes rebuilt from the packed data | agree to 2e-7 mag |
+| Distance from spectral type vs measured parallax, 233 main-sequence stars within 20 parsecs | median 8% too far; 87% within a factor of 1.5 |
 | Jupiter-Saturn great conjunction, December 2020 | closest gap 6.0 arcminutes, 17 h after 21 Dec 12:00 UT |
 | Mars opposition, 13 October 2020 | found 11 hours from noon UT that day |
 | Venus transit, 6 June 2012 01:30 UT | Venus 9.2 arcminutes from the Sun's centre, inside its 15.8 arcminute disc |
@@ -73,11 +85,13 @@ For scale: to Alpha Centauri at 1 g takes 3.6 years aboard and 6.0 years at home
 
 ## Not done yet
 
-- **The star field.** The page, two tests and the accuracy check still read `data/stars.json` and
-  `data/stars.bin`, which are no longer included. They need to be rebuilt from `data/bsc5/bsc5.json` (the Yale
-  Bright Star Catalogue, 9,096 stars to about magnitude 6.5). Only 3,289 of its stars have a parallax, so the
-  rest need a distance worked out from spectral type and brightness, and stars too faint for the catalogue
-  (Proxima Centauri, Barnard's Star) are not in it.
+- **Better distances.** Most stars are placed by spectral type, which is good to a factor of about 1.5 for
+  main-sequence stars and worse for giants and supergiants, where it can't be checked against this catalogue.
+  The catalogue's parallaxes are from before 1991: Sirius comes out at 8.70 light years, not 8.60. Canopus,
+  listed as a bright giant, comes out at 74 light years; it is really about 310. Dust between the stars is
+  ignored.
+- **Faint nearby stars.** The catalogue stops at about magnitude 6.5, so Proxima Centauri, Barnard's Star,
+  Wolf 359 and other red dwarfs are missing, though they are among the Sun's nearest neighbours.
 - **Real gravity during trips.** Trips are straight-line burns; the Sun's and planets' pull is ignored on the
   way. A proper n-body integrator, with gravity assists, would make planet trips honest.
 - **The stars' own motion.** Star positions are fixed; proper motion and radial velocity could move them over
@@ -93,7 +107,8 @@ For scale: to Alpha Centauri at 1 g takes 3.6 years aboard and 6.0 years at home
   `relativity.js`, `stars.js`, `systems.js`
 - `web/` the page: `index.html`, `app.js`, `shaders.js`, `style.css`, vendored three.js
 - `data/bsc5/` the Yale Bright Star Catalogue as JSON, with its MIT licence
-- `tools/` the accuracy check
+- `data/stars.bin`, `data/stars.json` the star field packed from it
+- `tools/` packing the catalogue, the accuracy check
 - `test/` `node --test`
 
 Licence: MIT ([LICENSE](LICENSE)). Credits: [CREDITS.md](CREDITS.md).

@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "eval": "node tools/eval.mjs",
+    "pack": "node tools/pack_stars.mjs",
     "serve": "python3 -m http.server 8792"
   }
 }
