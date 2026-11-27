@@ -1,12 +1,9 @@
 # Starhop
 
-Fly a ship from Earth to the real nearby stars, in the browser, by physics alone. The sky is the HYG catalog's
-17,753 brightest and nearest stars at their measured positions; the planets are where JPL's orbital elements
-put them today. Every trip is a constant burn to the halfway point, a flip, and a braking burn, timed with
-special relativity, and the sky you see on the way is what a ship at that speed would see: stars crowd
+Fly a ship from Earth to the stars, in the browser, by physics alone. The planets are where JPL's orbital
+elements put them today. Every trip is a constant burn to the halfway point, a flip, and a braking burn, timed
+with special relativity, and the sky you see on the way is what a ship at that speed would see: stars crowd
 forward, turn blue ahead and red behind. No AI, no textures downloaded, nothing learned.
-
-![At 0.89 c on the way to Alpha Centauri](docs/at-speed.jpg)
 
 ## Run it
 
@@ -32,11 +29,11 @@ node tools/eval.mjs
 
 ## How it works
 
-1. **Stars** (`tools/pack_stars.py`, `src/stars.js`). From the HYG database: every star brighter than
-   magnitude 7 seen from the Sun, plus every star within 25 parsecs, with position, absolute magnitude and B-V
-   colour, turned into the J2000 ecliptic frame the planets use. Temperature comes from B-V (Ballesteros 2012);
-   colour from Planck's law integrated against the CIE 1931 colour matching functions; brightness from the
-   distance to the ship each frame, so stars brighten as you approach them.
+1. **Stars** (`src/stars.js`). Each star has a position, absolute magnitude and B-V colour, in the J2000
+   ecliptic frame the planets use. The star field itself is not in this repository yet (see Not done yet).
+   Temperature comes from B-V (Ballesteros 2012); colour from Planck's law integrated against the CIE 1931
+   colour matching functions; brightness from the distance to the ship each frame, so stars brighten as you
+   approach them.
 2. **The solar system** (`src/solar.js`). JPL's Keplerian elements for approximate planet positions (valid 1800
    to 2050), each changing linearly with time, solved with Kepler's equation. Planets are tilted to their real
    poles (IAU values), so Saturn's rings sit 27 degrees off its orbit.
@@ -49,10 +46,10 @@ node tools/eval.mjs
    its temperature multiplied by the Doppler factor D, and its visual brightness raised by the exact blackbody
    factor (e^x - 1) / (e^(x/D) - 1). The Milky Way band, drawn from the galactic pole and centre directions, is
    aberrated the same way.
-6. **Other star systems** (`src/systems.js`). The real catalog has no planets for most stars, so each star gets
-   made-up ones, seeded by its catalog number so they never change. Spacing follows the star's luminosity, and
-   each planet's type follows from its equilibrium temperature: lava worlds close in, gas giants and ice giants
-   further out. The page says when a system is made up.
+6. **Other star systems** (`src/systems.js`). Most stars have no known planets, so each star gets made-up ones,
+   seeded by its number so they never change. Spacing follows the star's luminosity, and each planet's type
+   follows from its equilibrium temperature: lava worlds close in, gas giants and ice giants further out. The
+   page says when a system is made up.
 7. **Drawing** (`web/app.js`). The ship stays at the origin and everything else is placed relative to it in
    doubles, so nothing jitters a few light years from the Sun; a logarithmic depth buffer covers metres to
    parsecs. Planets are shaded procedurally (oceans and clouds, gas bands, ice, lava).
@@ -68,24 +65,26 @@ node tools/eval.mjs
 | Closed-form trip vs step-by-step integration of the rocket | agree to 3e-11 |
 | Aberration: seen directions stay unit length; beta then -beta gives back the start | 3e-14; 6e-13 rad |
 | 2856 K blackbody vs CIE Illuminant A (defined as that blackbody) | 0.0016 apart in xy |
-| Catalog magnitudes rebuilt from the packed data | median 0.0003 mag off |
 | Jupiter-Saturn great conjunction, December 2020 | closest gap 6.0 arcminutes, 17 h after 21 Dec 12:00 UT |
 | Mars opposition, 13 October 2020 | found 11 hours from noon UT that day |
 | Venus transit, 6 June 2012 01:30 UT | Venus 9.2 arcminutes from the Sun's centre, inside its 15.8 arcminute disc |
 
 For scale: to Alpha Centauri at 1 g takes 3.6 years aboard and 6.0 years at home, at a top speed of 0.952 c.
 
-![Saturn, tilted to its real pole](docs/saturn.jpg)
-
 ## Not done yet
 
+- **The star field.** The page, two tests and the accuracy check still read `data/stars.json` and
+  `data/stars.bin`, which are no longer included. They need to be rebuilt from `data/bsc5/bsc5.json` (the Yale
+  Bright Star Catalogue, 9,096 stars to about magnitude 6.5). Only 3,289 of its stars have a parallax, so the
+  rest need a distance worked out from spectral type and brightness, and stars too faint for the catalogue
+  (Proxima Centauri, Barnard's Star) are not in it.
 - **Real gravity during trips.** Trips are straight-line burns; the Sun's and planets' pull is ignored on the
   way. A proper n-body integrator, with gravity assists, would make planet trips honest.
-- **The stars' own motion.** Star positions are fixed at the catalog epoch; proper motion and radial
-  velocity are in HYG and could move them over the centuries a trip takes.
+- **The stars' own motion.** Star positions are fixed; proper motion and radial velocity could move them over
+  the centuries a trip takes.
 - **Moons**, asteroid belts, and planets' rings beyond Saturn's.
 - **Light travel time.** Planets and stars are drawn where they are, not where their light left them.
-- **Gravitational lensing** near stars, and a proper Milky Way from the catalog rather than a drawn band.
+- **Gravitational lensing** near stars, and a proper Milky Way from the star field rather than a drawn band.
 - **Docking and landing**: an orbit is as close as you get.
 
 ## Layout
@@ -93,9 +92,8 @@ For scale: to Alpha Centauri at 1 g takes 3.6 years aboard and 6.0 years at home
 - `src/` the physics, plain ES modules shared by the page and Node: `units.js`, `kepler.js`, `solar.js`,
   `relativity.js`, `stars.js`, `systems.js`
 - `web/` the page: `index.html`, `app.js`, `shaders.js`, `style.css`, vendored three.js and font
-- `data/` the packed star catalog and its licence
-- `tools/` packing the catalog, the accuracy check
+- `data/bsc5/` the Yale Bright Star Catalogue as JSON, with its MIT licence
+- `tools/` the accuracy check
 - `test/` `node --test`
 
-Licence: MIT for the code ([LICENSE](LICENSE)). The star data in `data/` is CC BY-SA 4.0, from the HYG
-database. Credits: [CREDITS.md](CREDITS.md).
+Licence: MIT ([LICENSE](LICENSE)). Credits: [CREDITS.md](CREDITS.md).

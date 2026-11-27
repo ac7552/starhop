@@ -79,7 +79,7 @@ const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[Math.
   report("colour", "2856 K blackbody vs Illuminant A chromaticity", Math.hypot(x - 0.44757, y - 0.40745), "xy distance", `(${x.toFixed(4)}, ${y.toFixed(4)})`);
 }
 
-// Catalog: apparent magnitude from the packed numbers, against HYG's own.
+// Catalog: apparent magnitude from the packed numbers, against the catalogue's own.
 {
   const metaJ = JSON.parse(fs.readFileSync(new URL("../data/stars.json", import.meta.url)));
   const buf = fs.readFileSync(new URL("../data/stars.bin", import.meta.url));
