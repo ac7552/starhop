@@ -1,0 +1,11 @@
+{
+  "name": "starhop",
+  "private": true,
+  "type": "module",
+  "description": "Fly a ship from the Sun to the real nearby stars, by physics: Kepler orbits, the relativistic rocket, and starlight seen at speed. No AI.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "eval": "node tools/eval.mjs",
+    "serve": "python3 -m http.server 8792"
+  }
+}
